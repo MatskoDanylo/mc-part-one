@@ -9,6 +9,7 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "C:\\Users\\${username}\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6\\cores\\**",
+                "C:\\Users\\${username}\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6\\variants\\mega\\*",
                 "C:\\Users\\${username}\\AppData\\Local\\Arduino15\\packages\\arduino\\**",
                 "${workspaceFolder}/../**"
             ],
@@ -18,8 +19,10 @@
             "defines": [
                 "_DEBUG",
                 "UNICODE",
-                "_UNICODE"
-            ]
+                "_UNICODE",
+                "__AVR_ATmega2560__"
+            ],
+            "mergeConfigurations": false
         },
         {
             "name": "Arduino",

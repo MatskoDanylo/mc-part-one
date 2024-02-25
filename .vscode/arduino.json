@@ -1,5 +1,5 @@
 {
     "configuration": "cpu=atmega2560",
     "board": "arduino:avr:mega",
-    "sketch": "mc_labs\\mc_lab_02\\lab_test\\lab_test.ino"
+    "sketch": "mc_labs\\mc_lab_01\\17_Senkiv\\17_Senkiv.ino"
 }

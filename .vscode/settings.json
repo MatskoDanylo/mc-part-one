@@ -1,6 +1,5 @@
 {
     "workbench.colorCustomizations": {
-
         "activityBar.activeBackground": "#007e80",
         "activityBar.background": "#007e80",
         "activityBar.foreground": "#e7e7e7",
@@ -27,11 +26,26 @@
     ],
     "cSpell.words": [
         "dylib",
+        "PORTA",
+        "PORTB",
+        "PORTC",
+        "PORTD",
+        "PORTF",
+        "PORTG",
+        "PORTH",
+        "PORTJ",
+        "PORTK",
+        "PORTL",
         "smod"
     ],
     "workbench.editor.autoLockGroups": {
         "wokwi.diagram-editor": true
     },
     "terminal.explorerKind": "both",
-    "vscode-pets.throwBallWithMouse": false
+    "vscode-pets.throwBallWithMouse": false,
+    "docwriter.style": "Doxygen",
+    "docwriter.progress.trackTypes": true,
+    "docwriter.progress.trackClasses": true,
+   
+    
 }
