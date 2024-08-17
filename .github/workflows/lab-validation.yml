@@ -31,12 +31,7 @@ jobs:
         uses: ./.github/actions/get_changed_files
 
       - name: Set up Arduino CLI
-        uses: arduino/setup-arduino-cli@v2
-
-      - name: Install platform
-        run: |
-          arduino-cli core update-index
-          arduino-cli core install ${{ env.platform }}
+        uses: ./.github/actions/avr_setup
 
       - name: Compile Sketch
         run: arduino-cli compile --fqbn ${{ env.fqbn_master }} $(grep -E '\.ino$' changed_files.txt | xargs)
@@ -74,12 +69,7 @@ jobs:
           fi
 
       - name: Set up Arduino CLI
-        uses: arduino/setup-arduino-cli@v2
-
-      - name: Install platform
-        run: |
-          arduino-cli core update-index
-          arduino-cli core install ${{ env.platform }}
+        uses: ./.github/actions/avr_setup
 
       - name: Compile master
         run: while read master_folder; do arduino-cli compile --fqbn ${{ env.fqbn_master }} $master_folder/*.ino; done < master_project.txt
