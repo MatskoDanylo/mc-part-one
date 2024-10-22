@@ -34,7 +34,14 @@ jobs:
         uses: ./.github/actions/avr_setup
 
       - name: Compile Sketch
-        run: arduino-cli compile --fqbn ${{ env.fqbn_master }} $(grep -E '\.ino$' changed_files.txt | xargs)
+        run: arduino-cli compile --fqbn ${{ env.fqbn_master }} --output-dir build $(grep -E '\.ino$' changed_files.txt | xargs) 
+
+      - name: Uploud artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifact
+          path: build
+
   build_lab_5:
     runs-on: ubuntu-22.04
     if: contains(github.head_ref, 'mc_lab_5')
@@ -112,3 +119,30 @@ jobs:
 
       - name: Compile Sketch
         run: avra pipeline_main_assembly_source_file.asm
+
+
+  test_lab_1:
+    runs-on: ubuntu-22.04
+    needs: build_labs_1_to_4
+    if: contains(github.head_ref, 'mc_lab_1')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: ${{ env.COMMIT_COUNT }}
+      
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: build-artifact
+          path: build
+      
+      - name: Generate Test Scenario
+        uses: OleksiuDatsko/get-lab-test-scenario-action@main
+        with:
+          lab_number: 1
+          variant_number: 1
+          wokwi_toml_path: mc_labs/mc_lab_01/wokwi.toml
+      
+      - name: Run Unit Tests
+        run: tree . 
