@@ -135,14 +135,20 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-artifact
-          path: build
+          path: mc_labs/mc_lab_01/build
       
       - name: Generate Test Scenario
+        id: generate_scenario
         uses: OleksiuDatsko/get-lab-test-scenario-action@main
         with:
           lab_number: 1
           variant_number: 1
           wokwi_toml_path: mc_labs/mc_lab_01/wokwi.toml
       
-      - name: Run Unit Tests
-        run: tree . 
+      - name: Test Pi Pico SDK Blinky on Wokwi
+        uses: wokwi/wokwi-ci-action@v1
+        with:
+          token: ${{ secrets.WOKWI_CLI_TOKEN }}
+          path: mc_labs/mc_lab_01/
+          timeout: 1000 # ms
+          scenario: ${{ steps.generate_scenario.outputs.test_scenario }}
