@@ -144,11 +144,11 @@ jobs:
           lab_number: 1
           variant_number: 1
           wokwi_toml_path: mc_labs/mc_lab_01/wokwi.toml
+          output: ${{ github.workspace }}/test_scenario.yml
       
-      - name: Test Pi Pico SDK Blinky on Wokwi
+      - name: Test on Wokwi
         uses: wokwi/wokwi-ci-action@v1
         with:
           token: ${{ secrets.WOKWI_CLI_TOKEN }}
           path: mc_labs/mc_lab_01/
-          timeout: 1000 # ms
           scenario: ${{ steps.generate_scenario.outputs.test_scenario }}
