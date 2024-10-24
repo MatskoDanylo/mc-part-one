@@ -158,4 +158,4 @@ jobs:
         with:
           token: ${{ secrets.WOKWI_CLI_TOKEN }}
           path: mc_labs/mc_lab_01/
-          scenario: ${{ github.workspace }}/test_scenario.yml
+          scenario: ${{ steps.generate_scenario.outputs.test_scenario }}
