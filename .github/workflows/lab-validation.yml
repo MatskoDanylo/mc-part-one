@@ -137,12 +137,19 @@ jobs:
           name: build-artifact
           path: mc_labs/mc_lab_01/build
       
+      - name: Extract Variant Number
+        id: extract_variant
+        run: |
+          variant=
+          echo "variant='$(echo "${{ github.head_ref }}" | sed -n 's/.*v\([0-9]\+\).*/\1/p')'" >> "$GITHUB_OUTPUT"
+          
+      
       - name: Generate Test Scenario
         id: generate_scenario
         uses: OleksiuDatsko/get-lab-test-scenario-action@main
         with:
           lab_number: 1
-          variant_number: 1
+          variant_number: ${{ steps.extract_variant.outputs.variant }}
           wokwi_toml_path: mc_labs/mc_lab_01/wokwi.toml
           output: ${{ github.workspace }}/test_scenario.yml
       

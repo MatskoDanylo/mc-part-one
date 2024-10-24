@@ -4,7 +4,7 @@ firmware = 'build/arduino.avr.mega/mc_lab_01.ino.hex'
 elf = 'build/arduino.avr.mega/mc_lab_01.ino.elf'
 
 [lab_setup]
-led_delay = "1000ms"
+led_delay = "800ms"
 btn1 = "btn1"
 P0 = "led8"
 P1 = "led6"
