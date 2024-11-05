@@ -34,8 +34,9 @@ jobs:
         uses: ./.github/actions/avr_setup
 
       - name: Compile Sketch
-        run: arduino-cli compile --fqbn ${{ env.fqbn_master }} --output-dir build $(grep -E '\.ino$' changed_files.txt | xargs) 
-
+        run: arduino-cli compile --fqbn ${{ env.fqbn_master }} --output-dir build $(grep -E '\.ino$' changed_files.txt | tail -n 1 | xargs) 
+        # TODO: remove tail -n 1 
+        
       - name: Uploud artifact
         uses: actions/upload-artifact@v4
         with:
