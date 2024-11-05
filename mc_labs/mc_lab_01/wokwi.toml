@@ -1,7 +1,7 @@
 [wokwi]
 version = 1
-firmware = 'build/arduino.avr.mega/mc_lab_01.ino.hex' 
-elf = 'build/arduino.avr.mega/mc_lab_01.ino.elf'
+firmware = 'build/mc_lab_01.ino.hex' 
+elf = 'build/mc_lab_01.ino.elf'
 
 [lab_setup]
 led_delay = "800ms"
