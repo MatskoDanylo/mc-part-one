@@ -132,7 +132,7 @@ void ledsHandler()
       MY_PORT ^= 1<<i; //bit flip
 
       //!!!!!! IN OTHER LAB VARIANTS NO INFINITE LOOP !!!!!!!!!!!!!!!
-      // btnPressedFlag = false
+      // btnPressedFlag = false;
     }
   }
   

@@ -153,6 +153,9 @@ jobs:
           variant_number: ${{ steps.extract_variant.outputs.variant }}
           wokwi_toml_path: mc_labs/mc_lab_01/wokwi.toml
           output: ${{ github.workspace }}/test_scenario.yml
+
+      - name: Run a Wokwi CI server
+        uses: wokwi/wokwi-ci-server-action@v1
       
       - name: Test on Wokwi
         uses: wokwi/wokwi-ci-action@v1
