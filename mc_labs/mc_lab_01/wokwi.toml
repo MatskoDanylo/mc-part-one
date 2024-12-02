@@ -4,7 +4,7 @@ firmware = 'build/mc_lab_01.ino.hex'
 elf = 'build/mc_lab_01.ino.elf'
 
 [lab_setup]
-led_delay = "800ms"
+serial_message = 'Port state:'
 btn1 = "btn1"
 P0 = "led8"
 P1 = "led6"
