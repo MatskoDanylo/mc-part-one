@@ -158,7 +158,16 @@ jobs:
         uses: wokwi/wokwi-ci-server-action@v1
       
       - name: Test on Wokwi
+        id: test
         uses: wokwi/wokwi-ci-action@v1
+        with:
+          token: ${{ secrets.WOKWI_CLI_TOKEN }}
+          path: mc_labs/mc_lab_01/
+          scenario: ${{ steps.generate_scenario.test_scenario }}
+
+      - name: Test on Wokwi
+        uses: wokwi/wokwi-ci-action@v1
+        if: steps.test.outcome == 'failure'
         with:
           token: ${{ secrets.WOKWI_CLI_TOKEN }}
           path: mc_labs/mc_lab_01/
