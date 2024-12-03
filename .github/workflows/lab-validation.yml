@@ -143,7 +143,6 @@ jobs:
         run: |
           variant=
           echo "variant='$(echo "${{ github.head_ref }}" | sed -n 's/.*v\([0-9]\+\).*/\1/p')'" >> "$GITHUB_OUTPUT"
-          
       
       - name: Generate Test Scenario
         id: generate_scenario
@@ -163,9 +162,9 @@ jobs:
         with:
           token: ${{ secrets.WOKWI_CLI_TOKEN }}
           path: mc_labs/mc_lab_01/
-          scenario: ${{ steps.generate_scenario.test_scenario }}
+          scenario: ${{ github.workspace }}/test_scenario.yml
 
-      - name: Test on Wokwi
+      - name: Rerun test on Wokwi
         uses: wokwi/wokwi-ci-action@v1
         if: steps.test.outcome == 'failure'
         with:
