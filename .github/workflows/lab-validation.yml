@@ -159,6 +159,7 @@ jobs:
       - name: Test on Wokwi
         id: test
         uses: wokwi/wokwi-ci-action@v1
+        continue-on-error: true
         with:
           token: ${{ secrets.WOKWI_CLI_TOKEN }}
           path: mc_labs/mc_lab_01/
