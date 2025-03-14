@@ -15,9 +15,8 @@ const uint8_t ledPins[3] = {LED1, LED2, LED3};
 unsigned long lastStepTime = 0;
 const unsigned long stepDelay = 1000; 
 
-// Змінні для збереження стану алгоритмів
-uint8_t currentLED = 0;   // Індекс світлодіода (0 ... 2)
-bool normalLEDOn = false; // Стан для звичайного режиму (ON/OFF)
+uint8_t currentLED = 0;   
+bool normalLEDOn = false; 
 
 bool lastButtonPressed = false; 
 bool virtualButtonPressed = false;
@@ -29,7 +28,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 <html lang="uk">
 <head>
   <meta charset="UTF-8">
-  <title>Керування алгоритмом світлодіодів</title>
+  <title>3 leds algo control</title>
   <style>
     .btn {
       padding: 10px 20px;
@@ -55,7 +54,6 @@ const char index_html[] PROGMEM = R"rawliteral(
     btn.addEventListener('mouseup', function() {
       fetch('/buttonUp');
     });
-    // Для підтримки мобільних пристроїв:
     btn.addEventListener('touchstart', function() {
       fetch('/buttonDown');
     });
@@ -81,7 +79,6 @@ void handleButtonUp() {
   server.send(200, "text/plain", "Virtual button up");
 }
 
-// Функція для звичайного почергового блимання
 void runNormalSequence() {
   if (millis() - lastStepTime >= stepDelay) {
     lastStepTime = millis();
@@ -91,21 +88,14 @@ void runNormalSequence() {
       }
       digitalWrite(ledPins[currentLED], HIGH);
       normalLEDOn = true;
-      Serial.print("Звичайний режим: діод ");
-      Serial.print(currentLED);
-      Serial.println(" ON");
     } else {
       digitalWrite(ledPins[currentLED], LOW);
       normalLEDOn = false;
-      Serial.print("Звичайний режим: діод ");
-      Serial.print(currentLED);
-      Serial.println(" OFF");
       currentLED = (currentLED + 1) % 3;
     }
   }
 }
 
-// Функція для режиму при утриманні кнопки.
 void runHeldSequence() {
   if (millis() - lastStepTime >= stepDelay) {
     lastStepTime = millis();
@@ -114,11 +104,6 @@ void runHeldSequence() {
     }
     digitalWrite(ledPins[(currentLED + 1) % 3], HIGH);
     digitalWrite(ledPins[(currentLED + 2) % 3], HIGH);
-    Serial.print("Режим при утриманні: діоди ");
-    Serial.print((currentLED + 1) % 3);
-    Serial.print(" та ");
-    Serial.print((currentLED + 2) % 3);
-    Serial.println(" ON");
     currentLED = (currentLED + 1) % 3;
   }
 }
@@ -134,7 +119,7 @@ void setup() {
   pinMode(BUTTON_PIN, INPUT_PULLUP);
 
   WiFi.begin(ssid, password);
-  Serial.print("Підключення до WiFi");
+  Serial.print("Connecting to WiFi");
   unsigned long startAttemptTime = millis();
   unsigned long lastDotPrint = startAttemptTime;
   while (WiFi.status() != WL_CONNECTED && (millis() - startAttemptTime < 15000)) {
@@ -145,18 +130,18 @@ void setup() {
   }
   
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("\nПідключено!");
-    Serial.print("IP адреса ESP8266: ");
+    Serial.println("\nConnected!");
+    Serial.print("IP adress ESP8266: ");
     Serial.println(WiFi.localIP());
   } else {
-    Serial.println("\nНе вдалося підключитися до WiFi");
+    Serial.println("\nCouldn`t connect to WiFi");
   }
 
   server.on("/", handleRoot);
   server.on("/buttonDown", handleButtonDown);
   server.on("/buttonUp", handleButtonUp);
   server.begin();
-  Serial.println("Веб-сервер запущено");
+  Serial.println("Web server is runing");
 }
 
 void loop() {
@@ -173,8 +158,6 @@ void loop() {
     if (!effectiveButtonPressed) {  
       currentLED = (currentLED + 2) % 3;
       normalLEDOn = false;
-      Serial.print("Режим нормального блимання починається з діода ");
-      Serial.println(currentLED);
     }
     lastButtonPressed = effectiveButtonPressed;
   }
