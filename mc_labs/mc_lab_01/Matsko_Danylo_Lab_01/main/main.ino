@@ -13,10 +13,12 @@ const uint8_t LED3 = 2;
 const uint8_t ledPins[3] = {LED1, LED2, LED3};
 
 unsigned long lastStepTime = 0;
-const unsigned long stepDelay = 1000; 
+const unsigned long stepDelay = 1000;
 
-uint8_t currentLED = 0;   
-bool normalLEDOn = false; 
+unsigned long buttonPressTime = 0;
+
+uint8_t currentLED = 0;
+bool normalLEDOn = false;
 
 bool lastButtonPressed = false; 
 bool virtualButtonPressed = false;
@@ -25,10 +27,10 @@ ESP8266WebServer server(80);
 
 const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>3 leds algo control</title>
+  <title>LED Algorithm Control</title>
   <style>
     .btn {
       padding: 10px 20px;
@@ -54,6 +56,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     btn.addEventListener('mouseup', function() {
       fetch('/buttonUp');
     });
+    // For mobile devices:
     btn.addEventListener('touchstart', function() {
       fetch('/buttonDown');
     });
@@ -131,17 +134,17 @@ void setup() {
   
   if (WiFi.status() == WL_CONNECTED) {
     Serial.println("\nConnected!");
-    Serial.print("IP adress ESP8266: ");
+    Serial.print("ESP8266 IP address: ");
     Serial.println(WiFi.localIP());
   } else {
-    Serial.println("\nCouldn`t connect to WiFi");
+    Serial.println("\nFailed to connect to WiFi");
   }
 
   server.on("/", handleRoot);
   server.on("/buttonDown", handleButtonDown);
   server.on("/buttonUp", handleButtonUp);
   server.begin();
-  Serial.println("Web server is runing");
+  Serial.println("Web server started");
 }
 
 void loop() {
@@ -151,19 +154,22 @@ void loop() {
   bool effectiveButtonPressed = physButton || virtualButtonPressed;
 
   if (effectiveButtonPressed != lastButtonPressed) {
-    lastStepTime = millis();
-    for (uint8_t i = 0; i < 3; i++) {
-      digitalWrite(ledPins[i], LOW);
-    }
-    if (!effectiveButtonPressed) {  
+    if (effectiveButtonPressed) {
+      buttonPressTime = millis();
+    } else {  
       currentLED = (currentLED + 2) % 3;
       normalLEDOn = false;
+      lastStepTime = millis();
     }
     lastButtonPressed = effectiveButtonPressed;
   }
   
   if (effectiveButtonPressed) {
-    runHeldSequence();
+    if (millis() - buttonPressTime < 2000) {
+      runNormalSequence();
+    } else {
+      runHeldSequence();
+    }
   } else {
     runNormalSequence();
   }
