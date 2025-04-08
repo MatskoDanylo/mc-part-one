@@ -1,5 +1,5 @@
-const button1 = document.getElementById("algo2");
-const button2 = document.getElementById("algo1");
+const button1 = document.getElementById("algo1");
+const button2 = document.getElementById("algo2");
 
 const holdTime = 500;
 let timer1, wasHeldEnough1, timer2, wasHeldEnough2;
@@ -15,20 +15,19 @@ button2.addEventListener('touchstart', handleStart);
 button2.addEventListener('touchend', handleStop);
 
 const ESP32_IP = "http://192.168.4.2";
-const ESP32_IP2 = "http://192.168.4.1";
 
 
 function handleHold() {
   wasHeldEnough1 = false;
   timer1 = setTimeout(() => {
     wasHeldEnough1 = true;
-    fetch(`${ESP32_IP2}/hold`);
+    fetch(`${ESP32_IP}/hold`);
   }, holdTime);
 }
 
 function handleRelease() {
   if (wasHeldEnough1) {
-    fetch(`${ESP32_IP2}/release`);
+    fetch(`${ESP32_IP}/release`);
   }
   clearTimeout(timer1);
   wasHeldEnough1 = false;

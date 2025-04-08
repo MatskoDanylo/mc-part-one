@@ -7,7 +7,6 @@
 #define BLINK_INTERVAL 1000
 #define HOLD_INTERVAL 500
 
-#define IS_AP true // set to false for ESP #2
 
 enum class Color {
   RED,
@@ -132,14 +131,11 @@ void pinSetup() {
 }
 
 void serverSetup() {
-  if (IS_AP) {
-    WiFi.softAP(SSID, PASSWORD);
-  } else {
-    WiFi.begin(SSID, PASSWORD);
-  }
+  WiFi.begin(SSID, PASSWORD);
+  
   
   LittleFS.begin();
-  server.serveStatic("/", LittleFS, "/").setDefaultFile("index2.html");
+  server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
   server.on("/hold", HTTP_GET, handleHold);
   server.on("/release", HTTP_GET, handleReleased);
   server.on("/start", HTTP_GET, sendStartSignal);
