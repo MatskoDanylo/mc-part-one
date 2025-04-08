@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
@@ -9,7 +8,6 @@
 #define HOLD_INTERVAL 500
 
 #define IS_AP true // set to false for ESP #2
-
 
 enum class Color {
   RED,
@@ -35,11 +33,11 @@ typedef struct button_s {
   bool serialIsHeld;
 } button_t;
 
-led_t redLED = {13, LOW, nullptr, nullptr, Color::RED}; // GPIO2
+led_t redLED = {13, LOW, nullptr, nullptr, Color::RED};     // GPIO2
 led_t yellowLED = {14, LOW, nullptr, nullptr, Color::YELLOW}; // GPIO14
-led_t greenLED = {2, LOW, nullptr, nullptr, Color::GREEN}; // GPIO13
+led_t greenLED = {2, LOW, nullptr, nullptr, Color::GREEN};    // GPIO13
 
-button_t button = {12, LOW, false, 0, false, false, false}; //GPIO12
+button_t button = {12, LOW, false, 0, false, false, false};   // GPIO12
 
 led_t *currentLED = &redLED;
 uint32_t currentTime;
@@ -86,13 +84,42 @@ void sendCurrentLEDtoWEB() {
   }
 }
 
+
+void sendHeldLEDtoWEB(led_t* led1, led_t* led2) {
+  String message = "held:";
+  switch (led1->color) {
+    case Color::RED:
+      message += "red";
+      break;
+    case Color::YELLOW:
+      message += "yellow";
+      break;
+    case Color::GREEN:
+      message += "green";
+      break;
+  }
+  message += ",";
+  switch (led2->color) {
+    case Color::RED:
+      message += "red";
+      break;
+    case Color::YELLOW:
+      message += "yellow";
+      break;
+    case Color::GREEN:
+      message += "green";
+      break;
+  }
+  ws.textAll(message);
+}
+
 void setupLEDOrder() {
   redLED.next = &yellowLED;
   redLED.prev = &greenLED;
-
+  
   yellowLED.next = &greenLED;
   yellowLED.prev = &redLED;
-
+  
   greenLED.next = &redLED;
   greenLED.prev = &yellowLED;
 }
@@ -107,23 +134,12 @@ void pinSetup() {
 void serverSetup() {
   if (IS_AP) {
     WiFi.softAP(SSID, PASSWORD);
-    Serial.print("AP IP address: ");
-    Serial.println(WiFi.softAPIP());
   } else {
     WiFi.begin(SSID, PASSWORD);
-    Serial.print("Connecting to Wi-Fi");
-    while (WiFi.status() != WL_CONNECTED) {
-      delay(500);
-      Serial.print(".");
-    }
-    Serial.println();
-    Serial.print("Connected! IP address: ");
-    Serial.println(WiFi.localIP());
   }
-
-  // common server setup
+  
   LittleFS.begin();
-  server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
+  server.serveStatic("/", LittleFS, "/").setDefaultFile("index2.html");
   server.on("/hold", HTTP_GET, handleHold);
   server.on("/release", HTTP_GET, handleReleased);
   server.on("/start", HTTP_GET, sendStartSignal);
@@ -131,7 +147,6 @@ void serverSetup() {
   server.addHandler(&ws);
   server.begin();
 }
-
 
 void lightLEDs() {
   digitalWrite(redLED.pin, redLED.state);
@@ -142,88 +157,80 @@ void lightLEDs() {
 void lightNextLED() {
   currentTime = millis();
   
-  // Determine if any button input is active (hardware, web, or serial)
   bool effectivePressed = button.state || button.webIsHeld || button.serialIsHeld;
   
-  // These static variables help manage the sequence across calls.
-  static uint32_t buttonPressedTime = 0;
-  static bool prevEffectivePressed = false;
-  static bool normalLEDOn = false;
+  static bool lastButtonPressed = false;
+  static uint32_t buttonPressTime = 0;
+  static bool normalLEDOn = false;   
+  static uint32_t lastStepTime = 0;    
   
-  // Detect a change in the button’s (effective) pressed state.
-  if (effectivePressed != prevEffectivePressed) {
+  if (effectivePressed != lastButtonPressed) {
     if (effectivePressed) {
-      // Button pressed now; record when this happened.
-      buttonPressedTime = currentTime;
+      buttonPressTime = currentTime;
     } else {
-      // Button was released;
-      // mimic second-code behavior where on release we update currentLED to (currentLED + 2)%3.
-      // In our circular linked list, this is equivalent to:
       currentLED = currentLED->prev;
       normalLEDOn = false;
-      previousBlinkTime = currentTime;
+      lastStepTime = currentTime;
     }
-    prevEffectivePressed = effectivePressed;
+    lastButtonPressed = effectivePressed;
   }
   
-  // Wait until the blink (or step) interval passes.
-  if (currentTime - previousBlinkTime < BLINK_INTERVAL)
-    return;
-  previousBlinkTime = currentTime;
-  
   if (effectivePressed) {
-    // When the button is held...
-    if (currentTime - buttonPressedTime < 2000) {
-      // For less than 2000ms: run the normal sequence: toggle current LED.
-      if (!normalLEDOn) {
-        // Turn off all LEDs …
+    if (currentTime - buttonPressTime < 500) {
+      if (currentTime - lastStepTime >= 500) {
+        lastStepTime = currentTime;
+        if (!normalLEDOn) {
+          redLED.state = LOW;
+          yellowLED.state = LOW;
+          greenLED.state = LOW;
+          currentLED->state = HIGH;
+          normalLEDOn = true;
+        } else {
+          currentLED->state = LOW;
+          normalLEDOn = false;
+          currentLED = currentLED->next;
+        }
+        sendCurrentLEDtoWEB();
+        lightLEDs();
+      }
+    } else {
+      if (currentTime - lastStepTime >= 500) {
+        lastStepTime = currentTime;
         redLED.state = LOW;
         yellowLED.state = LOW;
         greenLED.state = LOW;
-        // … and light up the current one.
+        led_t* ledA = currentLED->next;
+        led_t* ledB = currentLED->prev;
+        ledA->state = HIGH;
+        ledB->state = HIGH;
+        sendHeldLEDtoWEB(ledA, ledB);
+        currentLED = currentLED->next;
+        lightLEDs();
+      }
+    }
+  } else {
+    if (currentTime - lastStepTime >= 500) {
+      lastStepTime = currentTime;
+      if (!normalLEDOn) {
+        redLED.state = LOW;
+        yellowLED.state = LOW;
+        greenLED.state = LOW;
         currentLED->state = HIGH;
         normalLEDOn = true;
       } else {
-        // Now turn off the current LED, reset, and move to the next LED.
         currentLED->state = LOW;
         normalLEDOn = false;
         currentLED = currentLED->next;
       }
-    } else {
-      // Held for longer than 2000ms: run the held sequence.
-      // Clear all LED states:
-      redLED.state = LOW;
-      yellowLED.state = LOW;
-      greenLED.state = LOW;
-      // Light up both neighboring LEDs (which corresponds to (currentLED+1)%3 and (currentLED+2)%3).
-      currentLED->next->state = HIGH;
-      currentLED->prev->state = HIGH;
-      // And advance the sequence pointer (as in the second code’s held sequence).
-      currentLED = currentLED->next;
-    }
-  } else {
-    // When no button is pressed, continue running the normal sequence.
-    if (!normalLEDOn) {
-      redLED.state = LOW;
-      yellowLED.state = LOW;
-      greenLED.state = LOW;
-      currentLED->state = HIGH;
-      normalLEDOn = true;
-    } else {
-      currentLED->state = LOW;
-      normalLEDOn = false;
-      currentLED = currentLED->next;
+      sendCurrentLEDtoWEB();
+      lightLEDs();
     }
   }
-  
-  // Send update to web and apply the LED states.
-  sendCurrentLEDtoWEB();
-  lightLEDs();
 }
 
 void handleButtonHold() {
   button.state = digitalRead(button.pin) == LOW;
-
+  
   if (button.state) {
     if (!button.wasPressed) {
       button.wasPressed = true;

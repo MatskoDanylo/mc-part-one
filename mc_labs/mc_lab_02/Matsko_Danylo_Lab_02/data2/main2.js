@@ -1,5 +1,5 @@
-const button1 = document.getElementById("algo1");
-const button2 = document.getElementById("algo2");
+const button1 = document.getElementById("algo2");
+const button2 = document.getElementById("algo1");
 
 const holdTime = 500;
 let timer1, wasHeldEnough1, timer2, wasHeldEnough2;
@@ -14,19 +14,21 @@ button2.addEventListener('mouseup', handleStop);
 button2.addEventListener('touchstart', handleStart);
 button2.addEventListener('touchend', handleStop);
 
-const ESP32_IP = "http://192.168.4.1";
+const ESP32_IP = "http://192.168.4.2";
+const ESP32_IP2 = "http://192.168.4.1";
+
 
 function handleHold() {
   wasHeldEnough1 = false;
   timer1 = setTimeout(() => {
     wasHeldEnough1 = true;
-    fetch(`${ESP32_IP}/hold`);
+    fetch(`${ESP32_IP2}/hold`);
   }, holdTime);
 }
 
 function handleRelease() {
   if (wasHeldEnough1) {
-    fetch(`${ESP32_IP}/release`);
+    fetch(`${ESP32_IP2}/release`);
   }
   clearTimeout(timer1);
   wasHeldEnough1 = false;
@@ -48,7 +50,7 @@ function handleStop() {
   wasHeldEnough2 = false;
 }
 
-const socket = new WebSocket("ws://192.168.4.1/ws");
+const socket = new WebSocket("ws://192.168.4.2/ws");
 
 socket.onmessage = (event) => {
   let data = event.data;
