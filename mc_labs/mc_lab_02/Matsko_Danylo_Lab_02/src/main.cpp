@@ -57,14 +57,15 @@ void handleReleased(AsyncWebServerRequest *request) {
 }
 
 void sendStartSignal(AsyncWebServerRequest *request) {
-  Serial.print("h");
+  Serial.write(0x01);  
   request->send_P(200, "text/html", "ok");
 }
 
 void sendStopSignal(AsyncWebServerRequest *request) {
-  Serial.print("r");
+  Serial.write(0x02); 
   request->send_P(200, "text/html", "ok");
 }
+
 
 void sendCurrentLEDtoWEB() {
   if (currentLED == nullptr) {
@@ -243,12 +244,12 @@ void handleButtonHold() {
 
 void checkSerial() {
   if (Serial.available() > 0) {
-    serialData = Serial.read();
+    serialData = Serial.read() & 0b00111111; // 6 bits mask
     switch (serialData) {
-      case 'h':
+      case 0x01: 
         button.serialIsHeld = true;
         break;
-      case 'r':
+      case 0x02:  
         button.serialIsHeld = false;
         break;
     }
@@ -256,7 +257,7 @@ void checkSerial() {
 }
 
 void setup() {
-  Serial.begin(115200, SERIAL_8N1);
+  Serial.begin(115200, SERIAL_8O2);
   setupLEDOrder();
   pinSetup();
   serverSetup();
