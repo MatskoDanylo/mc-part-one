@@ -43,6 +43,11 @@ uint32_t currentTime;
 uint32_t previousBlinkTime = 0;
 uint8_t serialData;
 
+bool lastButtonPressed = false;
+uint32_t buttonPressTime = 0;
+bool normalLEDOn = false;
+uint32_t lastStepTime = 0;
+
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 
@@ -153,12 +158,7 @@ void lightLEDs() {
 void lightNextLED() {
   currentTime = millis();
   
-  bool effectivePressed = button.state || button.webIsHeld || button.serialIsHeld;
-  
-  static bool lastButtonPressed = false;
-  static uint32_t buttonPressTime = 0;
-  static bool normalLEDOn = false;   
-  static uint32_t lastStepTime = 0;    
+  bool effectivePressed = button.state || button.webIsHeld || button.serialIsHeld;  
   
   if (effectivePressed != lastButtonPressed) {
     if (effectivePressed) {

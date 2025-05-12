@@ -30,18 +30,26 @@ typedef struct button_s {
   bool hardIsHeld;
   bool webIsHeld;
   bool serialIsHeld;
+  void (*callback)();
 } button_t;
 
-led_t redLED = {13, LOW, nullptr, nullptr, Color::RED};     // GPIO2
-led_t yellowLED = {14, LOW, nullptr, nullptr, Color::YELLOW}; // GPIO14
-led_t greenLED = {2, LOW, nullptr, nullptr, Color::GREEN};    // GPIO13
+void handlePressTiming();
 
-button_t button = {12, LOW, false, 0, false, false, false};   // GPIO12
+led_t redLED = {13, LOW, nullptr, nullptr, Color::RED};     // GPIO13
+led_t yellowLED = {14, LOW, nullptr, nullptr, Color::YELLOW}; // GPIO14
+led_t greenLED = {2, LOW, nullptr, nullptr, Color::GREEN};    // GPIO2
+
+button_t button = {12, LOW, false, 0, false, false, false, handlePressTiming};   
 
 led_t *currentLED = &redLED;
 uint32_t currentTime;
 uint32_t previousBlinkTime = 0;
 uint8_t serialData;
+
+bool lastButtonPressed = false;
+uint32_t buttonPressTime = 0;
+bool normalLEDOn = false;
+uint32_t lastStepTime = 0;
 
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
@@ -153,12 +161,7 @@ void lightLEDs() {
 void lightNextLED() {
   currentTime = millis();
   
-  bool effectivePressed = button.state || button.webIsHeld || button.serialIsHeld;
-  
-  static bool lastButtonPressed = false;
-  static uint32_t buttonPressTime = 0;
-  static bool normalLEDOn = false;   
-  static uint32_t lastStepTime = 0;    
+  bool effectivePressed = button.state || button.webIsHeld || button.serialIsHeld;    
   
   if (effectivePressed != lastButtonPressed) {
     if (effectivePressed) {
@@ -224,16 +227,24 @@ void lightNextLED() {
   }
 }
 
+
+void handlePressTiming() {
+  if (!button.wasPressed) {
+    button.wasPressed = true;
+    button.pressStartTime = millis();
+  } else if (millis() - button.pressStartTime >= HOLD_INTERVAL) {
+    button.hardIsHeld = true;
+  }
+}
+
+
 void handleButtonHold() {
   button.state = digitalRead(button.pin) == LOW;
-  
+
   if (button.state) {
-    if (!button.wasPressed) {
-      button.wasPressed = true;
-      button.pressStartTime = millis();
-    } else if (millis() - button.pressStartTime >= HOLD_INTERVAL) {
-      button.hardIsHeld = true;
-    }
+    if (button.callback) {
+      button.callback();
+  }
   } else {
     if (button.wasPressed) {
       button.hardIsHeld = false;
@@ -241,6 +252,7 @@ void handleButtonHold() {
     button.wasPressed = false;
   }
 }
+
 
 void checkSerial() {
   if (Serial.available() > 0) {
